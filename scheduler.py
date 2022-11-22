@@ -46,6 +46,7 @@ class Scheduler(Subscriber, Thread):
         self.processes_queue = []
 
     def update(self, message):
+        print(message)
         self.update_processes_queue(message)
 
         if self.processes_queue and self.cpu.is_available():

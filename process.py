@@ -17,8 +17,8 @@ class Process(Thread):
     def __str__(self) -> str:
         return f"Process {self.id}: {self.duration}"
 
-    def execute(self) -> None:
-        self.duration -= 1
+    def execute(self, step=1000) -> None:
+        self.duration -= step
 
     def is_done(self) -> bool:
         return self.duration == 0

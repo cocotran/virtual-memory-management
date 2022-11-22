@@ -8,9 +8,9 @@ class Clock(Publisher, Thread):
     def __init__(self, secs=0.3) -> None:
         Publisher.__init__(self)
         self._secs = secs
-        self._step = 1
+        self._step = 1000
         self._running = False
-        self.current_time = 0
+        self.current_time = 1000
         Thread.__init__(self)
 
     def run(self):
