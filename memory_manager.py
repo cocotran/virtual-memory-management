@@ -1,4 +1,7 @@
 from cmath import inf
+from threading import Thread
+
+from logger import Logger
 
 
 class Page:
@@ -26,6 +29,7 @@ class MainMemory:
         self._add_pointer = None
         self._access_counter = 1
         self._access_point = [None for _ in range(page_num)]
+        self.logger = Logger()
 
     def get_access_point(self) -> int:
         self._access_counter += 1
@@ -46,22 +50,24 @@ class MainMemory:
                 return True
         return False
 
-    def add(self, id: str, value: str) -> None:
-        if self._access_counter <= 3:  # still empty
-            self.update_add_pointer()
+    def add(self, id: str, value: str) -> str:
+        swap_id = None
+        if not self.has_empty_space():
+            swap_id = self.pages[self._add_pointer].id
         self.pages[self._add_pointer] = Page(id, value)
         self._access_point[self._add_pointer] = self.get_access_point()
         self.update_add_pointer()
+        return swap_id
 
     def delete(self, id: str) -> None:
         for i, page in enumerate(self.pages):
-            if page.id == id:
-                self.pages[i] = None
+            if page is not None and page.id == id:
+                self.pages[i] = Page()
                 self._access_point[i] = None
 
     def get(self, id: str) -> Page:
         for i, page in enumerate(self.pages):
-            if page.id == id:
+            if page is not None and page.id == id:
                 self._access_point[i] = self.get_access_point()
                 self.update_add_pointer()
                 return page
@@ -106,10 +112,12 @@ class Disk:
             return -1
 
 
-class MemoryManager:
+class MemoryManager(Thread):
     def __init__(self, page_num: int) -> None:
+        Thread.__init__(self)
         self.main_memory = MainMemory(page_num)
         self.disk = Disk()
+        self.logger = Logger()
 
     def clear_disk(self) -> None:  # for testing
         self.disk.clear()
@@ -124,11 +132,35 @@ class MemoryManager:
         self.main_memory.delete(variable_id)
         self.disk.delete(variable_id)
 
-    def lookup(self, variable_id: str):
+    def lookup(self, time: int, variable_id: str):
         var = self.main_memory.get(variable_id)
         if var == -1:
             var = self.disk.get(variable_id)
             if var != -1:
                 self.disk.delete(variable_id)
-                self.main_memory.add(var.id, var.value)
+                swap_id = self.main_memory.add(var.id, var.value)
+                if swap_id is not None:
+                    self.logger.log_swap_command(time, variable_id, swap_id)
         return var
+
+    def parse_command(self, time: int, process, command: str) -> None:
+        command = command.split(" ")
+        if command[0] == "Store":
+            if len(command) != 3:
+                return
+            self.store(command[1], command[2])
+            self.logger.log_store_command(time, process, Page(command[1], command[2]))
+        elif command[0] == "Release":
+            if len(command) != 2:
+                return
+            self.release(command[1])
+            self.logger.log_release_command(time, process, command[1])
+        elif command[0] == "Lookup":
+            if len(command) != 2:
+                return
+            var = self.lookup(time, command[1])
+            self.logger.log_lookup_command(time, process, command[1], var)
+        else:
+            self.logger.log_error_command()
+            return
+        

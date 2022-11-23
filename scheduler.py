@@ -13,24 +13,30 @@ class CPU:
     def is_available(self) -> bool:
         return None in self.cores
 
+    def is_empty(self) -> bool:
+        for core in self.cores:
+            if core is not None:
+                return False
+        return True
+
     def start_process(self, process) -> None:
         for i in range(len(self.cores)):
             if self.cores[i] is None:
                 self.cores[i] = process
+                return
 
     def run(self, current_time: int) -> None:
         for core_id, process in enumerate(self.cores):
             if process is not None:
-                process.execute()
+                process.execute(current_time)
                 if process.is_done():
-                    self.logger.log_process_finish(current_time, process)
+                    self.logger.log_process_finish(current_time + 100, process)
                     self._release(core_id)
 
     def _release(self, core_id: int) -> None:
         self.cores[core_id] = None
 
 
-# class used to handle the fair-share process scheduling
 class Scheduler(Subscriber, Thread):
     def __init__(
         self, clock: Clock, name: str, core_num: int, all_processes=[]
@@ -46,7 +52,9 @@ class Scheduler(Subscriber, Thread):
         self.processes_queue = []
 
     def update(self, message):
-        print(message)
+        if not self.all_processes and not self.processes_queue and self.cpu.is_empty():
+            self._clock.stop()
+
         self.update_processes_queue(message)
 
         if self.processes_queue and self.cpu.is_available():
