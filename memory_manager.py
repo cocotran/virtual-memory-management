@@ -113,11 +113,12 @@ class Disk:
 
 
 class MemoryManager(Thread):
-    def __init__(self, page_num: int) -> None:
+    def __init__(self, page_num: int, lock) -> None:
         Thread.__init__(self)
         self.main_memory = MainMemory(page_num)
         self.disk = Disk()
         self.logger = Logger()
+        self.lock = lock
 
     def clear_disk(self) -> None:  # for testing
         self.disk.clear()
@@ -145,6 +146,7 @@ class MemoryManager(Thread):
 
     def parse_command(self, time: int, process, command: str) -> None:
         command = command.split(" ")
+        self.lock.acquire()
         if command[0] == "Store":
             if len(command) != 3:
                 return
@@ -163,4 +165,5 @@ class MemoryManager(Thread):
         else:
             self.logger.log_error_command()
             return
+        self.lock.release()
         
