@@ -5,10 +5,10 @@ from observable import Publisher
 
 
 class Clock(Publisher, Thread):
-    def __init__(self, secs=0.01) -> None:
+    def __init__(self, secs=0.01, step=100) -> None:
         Publisher.__init__(self)
         self._secs = secs
-        self._step = 100
+        self._step = step
         self._running = False
         self.current_time = 1000
         Thread.__init__(self)

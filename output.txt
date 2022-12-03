@@ -1,0 +1,19 @@
+Clock: 1000, Process 1: Started
+Clock: 1900, Process 1, Store: Variable 1, Value: 5
+Clock: 2000, Process 0: Started
+Clock: 2500, Process 1, Store: Variable 2, Value: 3
+Clock: 3000, Process 1: Finished
+Clock: 2900, Process 0, Store: Variable 3, Value: 7
+Clock: 3600, Memory Manager, SWAP: Variable 3 with Variable 2
+Clock: 3600, Process 0, Lookup: Variable 3, Value: 7
+Clock: 4000, Process 2: Started
+Clock: 4300, Process 0, Lookup: Variable 2, Not found
+Clock: 4600, Process 2, Release: Variable 1
+Clock: 5000, Process 0: Finished
+Clock: 5100, Process 2, Store: Variable 1, Value: 8
+Clock: 5500, Process 2, Lookup: Variable 1, Value: 8
+Clock: 6200, Process 2, Store: Variable 1, Value: 5
+Clock: 6500, Process 2, Store: Variable 2, Value: 3
+Clock: 6600, Process 2, Store: Variable 3, Value: 7
+Clock: 6700, Process 2, Lookup: Variable 3, Value: 7
+Clock: 7000, Process 2: Finished
