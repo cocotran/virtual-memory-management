@@ -14,7 +14,7 @@ class Page:
 
     def __str__(self) -> str:
         return f"{self.id} {self.value}"
-
+      #set the id and value
     def set(self, id: str, value: str) -> None:
         self.id = id
         self.value = value
@@ -25,6 +25,7 @@ class Page:
 
 class MainMemory:
     def __init__(self, page_num: int) -> None:
+        # number of memory pages available
         self.pages = [Page() for i in range(page_num)]
         self._add_pointer = None
         self._access_counter = 1
@@ -42,14 +43,14 @@ class MainMemory:
         for i, page in enumerate(self._access_point):
             if page < least_access_point:
                 self._add_pointer = i
-
+        #Check for empty space
     def has_empty_space(self) -> bool:
         for i, page in enumerate(self.pages):
             if page.is_empty():
                 self._add_pointer = i
                 return True
         return False
-
+         # fill memory if it has open spots and update pointer
     def add(self, id: str, value: str) -> str:
         swap_id = None
         if not self.has_empty_space():
@@ -64,7 +65,7 @@ class MainMemory:
             if page is not None and page.id == id:
                 self.pages[i] = Page()
                 self._access_point[i] = None
-
+      # get a certain page from virtual memory
     def get(self, id: str) -> Page:
         for i, page in enumerate(self.pages):
             if page is not None and page.id == id:
@@ -76,8 +77,9 @@ class MainMemory:
 
 class Disk:
     def __init__(self) -> None:
+        # create disk file
         self.pages_file = "vm.txt"
-
+         # Return numb of pages
     def _get_pages(self, arr):
         pages = [i.split(" ") for i in arr]
         pages = [Page(i[0], i[1]) for i in pages]
@@ -86,7 +88,7 @@ class Disk:
     def clear(self) -> None:
         with open(self.pages_file, "w") as f:
             f.close()
-
+     # write to disk page
     def add(self, id: str, value: str) -> None:
         page = Page(id, value)
         with open(self.pages_file, "a") as f:
@@ -115,24 +117,28 @@ class Disk:
 class MemoryManager(Thread):
     def __init__(self, page_num: int, lock) -> None:
         Thread.__init__(self)
+        # initialize MAin memory object
         self.main_memory = MainMemory(page_num)
+        # initialize disk  object
         self.disk = Disk()
+        # initialize logger object
         self.logger = Logger()
+         # synchronization
         self.lock = lock
 
     def clear_disk(self) -> None:  # for testing
         self.disk.clear()
-
+       #Excecute Store API
     def store(self, variable_id: str, value: str):
         if self.main_memory.has_empty_space():
             self.main_memory.add(variable_id, value)
         else:
             self.disk.add(variable_id, value)
-
+      #Excecute Release API
     def release(self, variable_id: str):
         self.main_memory.delete(variable_id)
         self.disk.delete(variable_id)
-
+      # Excecute lookup API
     def lookup(self, time: int, variable_id: str):
         var = self.main_memory.get(variable_id)
         if var == -1:
@@ -140,12 +146,14 @@ class MemoryManager(Thread):
             if var != -1:
                 self.disk.delete(variable_id)
                 swap_id = self.main_memory.add(var.id, var.value)
+                # execute Swap if Lookup located in disk space
                 if swap_id is not None:
                     self.logger.log_swap_command(time, variable_id, swap_id)
         return var
-
+        #Def to perform API call
     def parse_command(self, time: int, process, command: str) -> None:
         command = command.split(" ")
+        # acquire lock
         self.lock.acquire()
         if command[0] == "Store":
             if len(command) != 3:

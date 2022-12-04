@@ -42,7 +42,7 @@ class Logger:
 
     def log(self, message):
         print(message)
-
+ # write to output.txt file
     def write_to_file(self, message):
         with open("output.txt", "a") as f:
             f.write(message + "\n")

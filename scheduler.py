@@ -7,6 +7,7 @@ from logger import Logger
 
 class CPU:
     def __init__(self, core_num: int) -> None:
+          # number of cores
         self.cores = [None for _ in range(core_num)]
         self.logger = Logger()
 
@@ -24,7 +25,7 @@ class CPU:
             if self.cores[i] is None:
                 self.cores[i] = process
                 return
-
+            # run thread when thread.start() is called
     def run(self, current_time: int) -> None:
         for core_id, process in enumerate(self.cores):
             if process is not None:
@@ -41,6 +42,7 @@ class Scheduler(Subscriber, Thread):
     def __init__(
         self, clock: Clock, name: str, core_num: int, all_processes=[]
     ) -> None:
+      # create process threads
         Thread.__init__(self)
         Subscriber.__init__(self, name)
         clock.register(self)
@@ -50,7 +52,7 @@ class Scheduler(Subscriber, Thread):
         self.cpu = CPU(core_num)
         self.all_processes = all_processes
         self.processes_queue = []
-
+            
     def update(self, message):
         if not self.all_processes and not self.processes_queue and self.cpu.is_empty():
             self._clock.stop()
